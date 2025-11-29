@@ -264,6 +264,27 @@ function blobToDataURL(blob){
 loadHeaderLogo();
 
 /* =======================
+   Controle de abas
+   ======================= */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    // Remove classe active de todas as abas
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    // Adiciona classe active na aba clicada
+    this.classList.add('active');
+    
+    // Esconde todos os formulários
+    document.querySelectorAll('form.section').forEach(form => {
+      form.classList.remove('active');
+    });
+    
+    // Mostra o formulário correspondente
+    const tabId = this.getAttribute('data-tab');
+    document.getElementById(`form-${tabId}`).classList.add('active');
+  });
+});
+
+/* =======================
    Máscaras e utilitários
    ======================= */
 
@@ -497,7 +518,7 @@ function renderPreviewProcuracao() {
   lines.push("INSTRUMENTO PROCURATÓRIO");
   lines.push("");
   lines.push("");
-  const content = `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula “ad judicia et extra”, em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`;
+  const content = `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula "ad judicia et extra", em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`;
   const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">${escapeHtml(lines[0])}</div>
   <div style="height:12px;"></div>
   <div style="text-align:justify;line-height:1.5">${escapeHtml(content)}</div>
@@ -590,7 +611,7 @@ function docDefProcuracao(d) {
   const content = [
     { text: 'INSTRUMENTO PROCURATÓRIO', style: 'title' },
     { text: '\n' },
-    { text: `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula “ad judicia et extra”, em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`, style: 'main', alignment: 'justify' }
+    { text: `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula "ad judicia et extra", em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`, style: 'main', alignment: 'justify' }
   ];
   if (finalidade) {
     content.push({ text: '\n' });
