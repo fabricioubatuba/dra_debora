@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gerador de Documentos - Débora Castilho</title>
+
+<!-- PDFMake -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+<style>
+  :root{
+    --bg:#f4f6f8;
+    --card:#ffffff;
+    --accent:#063852; /* azul petróleo */
+    --muted:#6b6f72;
+    --soft:#f2f4f6;
+  }
+  *{box-sizing:border-box;font-family:Inter, "Segoe UI", Roboto, Arial, Helvetica, sans-serif}
+  body{background:var(--bg);margin:0;padding:28px;color:#1b2430}
+  .wrap{max-width:1100px;margin:0 auto}
+  .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(8,20,30,0.06)}
+  header.top{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+  header .brand{display:flex;align-items:center;gap:12px}
+  header img.logo{height:56px}
+  header h1{font-size:18px;margin:0;color:var(--accent)}
+  .tabs{display:flex;gap:6px;margin:14px 0;flex-wrap:wrap}
+  .tab{padding:8px 12px;border-radius:8px;background:var(--soft);cursor:pointer;font-weight:700;color:var(--accent)}
+  .tab.active{background:linear-gradient(180deg,#063852,#0b5065);color:#fff}
+
+  form.section{display:none;margin-top:12px}
+  form.section.active{display:block}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .full{grid-column:1 / -1}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:600}
+  input[type=text], input[type=email], input[type=date], select, textarea, input[type=number] {width:100%;padding:10px;border-radius:8px;border:1px solid #e3e7ea;background:#fff;font-size:14px}
+  textarea{min-height:120px}
+  .small{font-size:13px;color:var(--muted)}
+  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  button{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-muted{background:#f6f8f9;color:var(--accent);border:1px solid #e7ebee}
+  .preview{border:1px solid #e9eef2;border-radius:8px;padding:14px;background:#fff;min-height:260px;white-space:pre-wrap}
+  .footer-note{margin-top:14px;font-size:13px;color:var(--muted);text-align:center}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <header class="top">
+      <div class="brand">
+        <!-- site logo (visible no site) -->
+        <img class="logo" id="pageLogo" src="" alt="logo" />
+        <div>
+          <h1>Gerador de Documentos — Escritório Jurídico</h1>
+          <div class="small">Produza Procuração • Declaração de Pobreza • Contrato de Honorários</div>
+        </div>
+      </div>
+
+      <div style="margin-left:auto;text-align:right">
+        <div class="small">As logos são carregadas automaticamente do repositório GitHub configurado.</div>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <div class="tab active" data-tab="dados">Dados do Contratante</div>
+      <div class="tab" data-tab="procuracao">Procuração</div>
+      <div class="tab" data-tab="declaracao">Declaração de Pobreza</div>
+      <div class="tab" data-tab="contrato">Contrato de Honorários</div>
+    </nav>
+
+    <!-- DADOS DO CONTRATANTE -->
+    <form id="form-dados" class="section active" onsubmit="return false">
+      <div class="grid">
+        <div>
+          <label>Contratante</label>
+          <input type="text" id="contratante" placeholder="Nome completo" />
+        </div>
+
+        <div>
+          <label>Nacionalidade</label>
+          <!-- NÃO é select: editável, valor padrão 'brasileiro(a)' -->
+          <input type="text" id="nacionalidade" value="brasileiro(a)" />
+        </div>
+
+        <div>
+          <label>Estado Civil</label>
+          <select id="estadoCivil"><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select>
+        </div>
+
+        <div>
+          <label>Profissão</label>
+          <input type="text" id="profissao" />
+        </div>
+
+        <div>
+          <label>RG</label>
+          <input type="text" id="rg" />
+        </div>
+
+        <div>
+          <label>CPF / CNPJ</label>
+          <input type="text" id="cpfCnpj" placeholder="CPF ou CNPJ" />
+        </div>
+
+        <div class="full">
+          <label>Endereço</label>
+          <input type="text" id="endereco" />
+        </div>
+
+        <div>
+          <label>Número</label>
+          <input type="text" id="numero" />
+        </div>
+
+        <div>
+          <label>Complemento</label>
+          <input type="text" id="complemento" />
+        </div>
+
+        <div>
+          <label>Bairro</label>
+          <input type="text" id="bairro" />
+        </div>
+
+        <div>
+          <label>CEP</label>
+          <input type="text" id="cep" placeholder="11695-738" />
+        </div>
+
+        <div>
+          <label>E-mail</label>
+          <input type="email" id="email" />
+        </div>
+
+        <div>
+          <label>Data</label>
+          <input type="date" id="data" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-muted" id="salvarDadosBtn">Salvar</button>
+      </div>
+    </form>
+
+    <!-- PROCURAÇÃO -->
+    <form id="form-procuracao" class="section" onsubmit="return false">
+      <div class="grid">
+        <div class="full">
+          <label>Finalidade da Procuração</label>
+          <!-- caixa reduzida (duas linhas) e pré-carregada -->
+          <textarea id="finalidadeProc" rows="2"></textarea>
+        </div>
+
+        <div class="full">
+          <label>Visualização completa do documento</label>
+          <div id="preview-procuracao" class="preview"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="pdfProcuracaoBtn">Criar PDF</button>
+      </div>
+    </form>
+
+    <!-- DECLARAÇÃO -->
+    <form id="form-declaracao" class="section" onsubmit="return false">
+      <div class="grid">
+        <div class="full">
+          <label>Visualização completa do documento</label>
+          <div id="preview-declaracao" class="preview"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="pdfDeclaracaoBtn">Criar PDF</button>
+      </div>
+    </form>
+
+    <!-- CONTRATO DE HONORÁRIOS -->
+    <form id="form-contrato" class="section" onsubmit="return false">
+      <div class="grid">
+        <div>
+          <label>Motivo da Ação</label>
+          <input type="text" id="c_motivoAcao" />
+        </div>
+
+        <div>
+          <label>% Pro-labore</label>
+          <input type="text" id="c_proLabore" value="30%" />
+        </div>
+
+        <div>
+          <label>Valor Propositura</label>
+          <input type="text" id="c_valorPropositura" placeholder="R$ 1.500,00" />
+        </div>
+
+        <div>
+          <label>Qtd de Parcelas</label>
+          <input type="number" id="c_qtdParcelas" min="1" value="1" />
+        </div>
+
+        <div>
+          <label>Valor da Parcela</label>
+          <input type="text" id="c_valorParcela" placeholder="R$ 0,00" />
+        </div>
+
+        <div>
+          <label>1º Vencimento</label>
+          <input type="date" id="c_primeiroVencimento" />
+        </div>
+
+        <div class="full">
+          <label>Visualização completa do documento</label>
+          <div id="preview-contrato" class="preview"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" id="pdfContratoBtn">Criar PDF</button>
+      </div>
+    </form>
+
+    <div class="footer-note">Todos os PDFs terão cabeçalho com a imagem do repositório (logo_dc_novo.png). A logo do site é carregada separadamente.</div>
+
+  </div>
+</div>
+
+<script>
+console.log("SCRIPT INICIADO");
+/* =======================
+   Configurações de logo
+   ======================= */
+/* As URLs que você informou */
+const headerLogoUrl = "https://raw.githubusercontent.com/fabricioubatuba/dra_debora/refs/heads/main/logo_dc_novo.png?token=GHSAT0AAAAAADF674LBEKTYERV4M2O5O2TS2JK6T2Q";
+const siteLogoUrl = "https://raw.githubusercontent.com/fabricioubatuba/dra_debora/refs/heads/main/logo_dc_novo_site.png?token=GHSAT0AAAAAADF674LB5NKDW5HDFGKMSWMK2JK6ZOA";
+
+/* Exibe logo do site (visível no HTML) */
+document.getElementById('pageLogo').src = siteLogoUrl;
+
+/* variavel que conterá a imagem convertida para base64 (usada no cabeçalho do PDF) */
+let logoDataUrl = null;
+
+/* Puxa a imagem do GitHub e converte para dataURL para PDFMake */
+async function loadHeaderLogo() {
+  try {
+    const resp = await fetch(headerLogoUrl);
+    if (!resp.ok) { console.warn('Logo do header não encontrada'); return; }
+    const blob = await resp.blob();
+    logoDataUrl = await blobToDataURL(blob);
+    console.info('Logo de cabeçalho carregada.');
+  } catch (e) {
+    console.warn('Erro ao carregar logo do header', e);
+  }
+}
+function blobToDataURL(blob){
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.readAsDataURL(blob);
+  });
+}
+loadHeaderLogo();
+
+/* =======================
+   Máscaras e utilitários
+   ======================= */
+
+/* Formatar CEP: 11695-738 */
+function formatCEP(v) {
+  v = v.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) return v.slice(0,5) + '-' + v.slice(5);
+  if (v.length > 0) return v;
+  return v;
+}
+
+/* CPF/CNPJ: altera máscara conforme comprimento */
+function formatCpfCnpj(v) {
+  v = v.replace(/\D/g,'');
+  if (v.length <= 11) {
+    // CPF: XXX.XXX.XXX-XX
+    v = v.replace(/(\d{3})(\d)/,'$1.$2');
+    v = v.replace(/(\d{3})(\d)/,'$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  } else {
+    // CNPJ: XX.XXX.XXX/XXXX-XX
+    v = v.replace(/^(\d{2})(\d)/,'$1.$2');
+    v = v.replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3');
+    v = v.replace(/\.(\d{3})(\d)/,'.$1/$2');
+    v = v.replace(/(\d{4})(\d{1,2})$/,'$1-$2');
+  }
+  return v;
+}
+
+/* Formatar moeda no campo (R$ 1.500,00) — entrada apenas números */
+function formatarMoedaInputString(v) {
+  v = v.replace(/\D/g,'');
+  if (!v) return '';
+  v = (parseInt(v,10)/100).toFixed(2) + '';
+  v = v.replace('.',',');
+  v = v.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // milhares
+  return 'R$ ' + v;
+}
+
+/* recebe string no formato 'R$ 1.500,00' e retorna number */
+function moedaToNumber(str) {
+  if (!str) return 0;
+  str = str.replace(/[R$\s\.]/g,'').replace(',','.');
+  const n = parseFloat(str);
+  return isNaN(n) ? 0 : n;
+}
+
+/* =======================
+   Número por extenso (simples) — trata até centenas de milhares
+   retorna algo como 'mil e quinhentos reais' ou 'um real e cinquenta centavos' */
+function numeroParaExtensoSimples(numero) {
+  numero = parseInt(numero,10);
+  if (isNaN(numero)) return '';
+  const unidades = ['','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
+  const de10a19 = ['dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+  const dezenas = ['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+  const centenas = ['','cem','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+
+  function até999(n) {
+    if (n === 0) return 'zero';
+    if (n === 100) return 'cem';
+    let s = '';
+    const c = Math.floor(n/100);
+    const resto = n%100;
+    if (c>0) s += centenas[c];
+    if (resto>0 && c>0) s += ' e ';
+    if (resto>=10 && resto<=19) s += de10a19[resto-10];
+    else {
+      const d = Math.floor(resto/10);
+      const u = resto%10;
+      if (d>1) { s += dezenas[d]; if (u>0) s += ' e ' + unidades[u]; }
+      else if (u>0) s += unidades[u];
+    }
+    return s;
+  }
+
+  if (numero < 1000) return até999(numero);
+  if (numero < 1000000) {
+    const milhares = Math.floor(numero/1000);
+    const resto = numero%1000;
+    let s = '';
+    if (milhares === 1) s = 'mil';
+    else s = até999(milhares) + ' mil';
+    if (resto > 0) s += (resto < 100 ? ' e ' : ' ') + até999(resto);
+    return s;
+  }
+  return String(numero);
+}
+
+function valorParaExtenso(valorStr) {
+  if (!valorStr) return '';
+  // valorStr esperado 'R$ 1.500,00' ou '1500,00'
+  let n = moedaToNumber(valorStr);
+  if (isNaN(n)) return '';
+  const inteiro = Math.floor(n);
+  const cent = Math.round((n - inteiro) * 100);
+  let parte = numeroParaExtensoSimples(inteiro) + (inteiro === 1 ? ' real' : ' reais');
+  if (cent > 0) parte += ' e ' + numeroParaExtensoSimples(cent) + (cent === 1 ? ' centavo' : ' centavos');
+  return parte;
+}
+
+/* =======================
+   Eventos: máscaras, cálculos e previews
+   ======================= */
+
+document.getElementById('cep').addEventListener('input', e => {
+  e.target.value = formatCEP(e.target.value);
+});
+
+document.getElementById('cpfCnpj').addEventListener('input', e => {
+  const pos = e.target.selectionStart;
+  const cur = e.target.value;
+  e.target.value = formatCpfCnpj(cur);
+});
+
+document.getElementById('c_valorPropositura').addEventListener('input', e => {
+  e.target.value = formatarMoedaInputString(e.target.value);
+  atualizarValorParcelaAutomatico();
+  atualizarPreviewContrato();
+});
+document.getElementById('c_qtdParcelas').addEventListener('input', () => { atualizarValorParcelaAutomatico(); atualizarPreviewContrato(); });
+document.getElementById('c_valorParcela').addEventListener('input', e => {
+  e.target.value = formatarMoedaInputString(e.target.value);
+  atualizarPreviewContrato();
+});
+
+/* calcula automaticamente o valor da parcela e coloca no campo valorParcela */
+function atualizarValorParcelaAutomatico() {
+  const total = moedaToNumber(document.getElementById('c_valorPropositura').value);
+  const qtd = parseInt(document.getElementById('c_qtdParcelas').value) || 1;
+  if (total <= 0 || qtd <= 0) return;
+  const parcela = total / qtd;
+  // formata em R$
+  const parcelaStr = parcela.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('c_valorParcela').value = 'R$ ' + parcelaStr.replace('.', ',');
+}
+
+/* atualizar previews quando campos mudam */
+const camposParaPreview = [
+  'contratante','nacionalidade','estadoCivil','profissao','rg','cpfCnpj','endereco','numero','complemento','bairro','cep','email','data',
+  'finalidadeProc',
+  'c_motivoAcao','c_proLabore','c_valorPropositura','c_qtdParcelas','c_valorParcela','c_primeiroVencimento'
+];
+camposParaPreview.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    renderPreviewProcuracao();
+    renderPreviewDeclaracao();
+    renderPreviewContrato();
+  });
+});
+
+/* inicialização datas e finalidade padrão */
+(function init(){
+  const hoje = new Date();
+  const tzOffset = hoje.getTimezoneOffset()*60000;
+  const localISO = new Date(hoje - tzOffset).toISOString().split('T')[0];
+  document.getElementById('data').value = localISO;
+
+  let pv = new Date(hoje);
+  pv.setDate(pv.getDate() + 10);
+  document.getElementById('c_primeiroVencimento').value = new Date(pv - tzOffset).toISOString().split('T')[0];
+
+  document.getElementById('finalidadeProc').value = "Ação judicial – Indenização por Danos Morais e Materiais";
+
+  // executar previews iniciais
+  renderPreviewProcuracao();
+  renderPreviewDeclaracao();
+  renderPreviewContrato();
+
+  // carregar logo do site (se achar) - já definido, caso queira fallback pode trocar
+  document.getElementById('pageLogo').src = siteLogoUrl;
+})();
+
+/* =======================
+   Coletar dados para os templates
+   ======================= */
+function coletarDadosGlobais() {
+  const endereco = document.getElementById('endereco').value || '';
+  const numero = document.getElementById('numero').value || '';
+  const complemento = document.getElementById('complemento').value || '';
+  const bairro = document.getElementById('bairro').value || '';
+  const cep = document.getElementById('cep').value || '';
+  let enderecoCompleto = endereco;
+  if (numero) enderecoCompleto += ', nº ' + numero;
+  if (complemento) enderecoCompleto += ', ' + complemento;
+  if (bairro) enderecoCompleto += ', ' + bairro;
+  if (cep) enderecoCompleto += ', CEP ' + cep;
+
+  return {
+    contratante: document.getElementById('contratante').value || '',
+    nacionalidade: document.getElementById('nacionalidade').value || '',
+    estadoCivil: document.getElementById('estadoCivil').value || '',
+    profissao: document.getElementById('profissao').value || '',
+    rg: document.getElementById('rg').value || '',
+    cpf: document.getElementById('cpfCnpj').value || '',
+    email: document.getElementById('email').value || '',
+    enderecoCompleto,
+    data: document.getElementById('data').value || '',
+    dataExtenso: dataPorExtenso(document.getElementById('data').value || ''),
+
+    // contrato fields
+    motivoAcao: document.getElementById('c_motivoAcao').value || '',
+    proLabore: document.getElementById('c_proLabore').value || '30%',
+    valorPropositura: document.getElementById('c_valorPropositura').value || '',
+    qtdParcelas: parseInt(document.getElementById('c_qtdParcelas').value) || 1,
+    valorParcela: document.getElementById('c_valorParcela').value || '',
+    primeiroVencimento: document.getElementById('c_primeiroVencimento').value || '',
+    finalidadeProc: document.getElementById('finalidadeProc').value || ''
+  };
+}
+
+function dataPorExtenso(data) {
+  if (!data) return "";
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const d = new Date(data + "T00:00:00");
+  if (isNaN(d)) return "";
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+/* =======================
+   Previews HTML
+   ======================= */
+
+function escapeHtml(s) { return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderPreviewProcuracao() {
+  const d = coletarDadosGlobais();
+  const lines = [];
+  lines.push("INSTRUMENTO PROCURATÓRIO");
+  lines.push("");
+  lines.push("");
+  const content = `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula “ad judicia et extra”, em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`;
+  const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">${escapeHtml(lines[0])}</div>
+  <div style="height:12px;"></div>
+  <div style="text-align:justify;line-height:1.5">${escapeHtml(content)}</div>
+  <div style="margin-top:10px;font-weight:700">Finalidade: ${escapeHtml(d.finalidadeProc)}</div>
+  <div style="text-align:right;margin-top:18px">Ubatuba, ${d.dataExtenso}</div>
+  <div style="height:40px"></div>
+  <div style="text-align:center">_________________________________________<br>${escapeHtml(d.contratante.toUpperCase())}</div>`
+  document.getElementById('preview-procuracao').innerHTML = html;
+}
+
+function renderPreviewDeclaracao() {
+  const d = coletarDadosGlobais();
+  const titulo = "D E C L A R A Ç Ã O";
+  const content = `${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, DECLARA para os devidos fins, ser pobre na acepção jurídica do termo, não possuindo meios econômicos para arcar com quaisquer custas processuais ou honorários relativos à presente contenda, sem que venha comprometer o sustento próprio e da sua família, necessitando, desta forma, dos benefícios da JUSTIÇA GRATUITA, nos termos do artigo 5º, inciso LXXIV e XXXV da Constituição Federal da República; outrossim, informa a declarante que se encontra na condição de isenção perante a Receita Federal do Brasil...`;
+  const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">${escapeHtml(titulo)}</div>
+  <div style="height:12px;"></div>
+  <div style="text-align:justify;line-height:1.5">${escapeHtml(content)}</div>
+  <div style="text-align:right;margin-top:18px">Ubatuba, ${d.dataExtenso}</div>
+  <div style="height:40px"></div>
+  <div style="text-align:center">_________________________________________<br>${escapeHtml(d.contratante.toUpperCase())}</div>`;
+  document.getElementById('preview-declaracao').innerHTML = html;
+}
+
+function renderPreviewContrato() {
+  const d = coletarDadosGlobais();
+  const motivo = d.motivoAcao || 'não especificado';
+  const proLab = d.proLabore || '30%';
+  const valor = d.valorPropositura || 'R$ 0,00';
+  const parcelasTxt = gerarTextoParcelas(d.valorParcela, d.qtdParcelas, d.primeiroVencimento);
+  const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">CONTRATO DE HONORÁRIOS ADVOCATÍCIOS</div>
+  <div style="text-align:left;line-height:1.4">
+  <strong>DAS PARTES</strong><br><br>
+  CONTRATANTE: ${escapeHtml(d.contratante.toUpperCase())}, ${escapeHtml(d.nacionalidade)}, ${escapeHtml(d.estadoCivil)}, ${escapeHtml(d.profissao)}, portador do RG nº ${escapeHtml(d.rg||'--')} e inscrito no CPF sob o nº ${escapeHtml(d.cpfCnpj||'--')}, residente e domiciliado na ${escapeHtml(d.enderecoCompleto||'--')}.<br><br>
+  OBJETO: prestação de serviços advocatícios relativos à Ação de ${escapeHtml(motivo)}.<br><br>
+  DA FORMA DE COBRANÇA: pro-labore de ${escapeHtml(proLab)}, para a propositura da ação o valor de ${escapeHtml(valor)}${parcelasTxt ? '<br>Parcelamento: ' + escapeHtml(parcelasTxt) : ''}
+
+  </div>
+  <div style="text-align:right;margin-top:18px">Ubatuba, ${d.dataExtenso}</div>
+  <div style="height:40px"></div>
+  <div style="display:flex;justify-content:space-between">
+    <div style="text-align:center">_________________________________________<br>${escapeHtml(d.contratante.toUpperCase())}</div>
+    <div style="text-align:center">_________________________________________<br>DÉBORA FERNANDA CASTILHO<br>OAB/SP 501.311</div>
+  </div>`;
+  document.getElementById('preview-contrato').innerHTML = html;
+}
+
+/* Gera texto de parcelas semelhante ao comportamento anterior,
+   cuidando para não gerar 'undefined' no valor por extenso */
+function gerarTextoParcelas(valorParcela, qtdParcelas, primeiroVenc) {
+  if (!valorParcela || !primeiroVenc) return '';
+  const valorStr = valorParcela;
+  const qtd = parseInt(qtdParcelas) || 1;
+  const d = new Date(primeiroVenc + 'T00:00:00');
+  const datas = [];
+  for (let i = 0; i < qtd; i++) {
+    let n = new Date(d);
+    n.setMonth(d.getMonth() + i);
+    datas.push(n.toLocaleDateString('pt-BR'));
+  }
+  const ext = valorParaExtenso(valorStr) || valorStr;
+  let txt = `R$ ${valorStr.replace(/[R$\s]/g,'')} (${ext}) na data de ${datas[0]}`;
+  if (qtd > 1) {
+    txt += `, e mais ${qtd-1} parcelas mensais de R$ ${valorStr.replace(/[R$\s]/g,'')}`;
+    txt += `, sendo a primeira em ${datas[0]}`;
+    for (let i = 1; i < qtd; i++) txt += `, a ${i+1}ª para ${datas[i]}`;
+    txt += '.';
+  } else txt += '.';
+  return txt;
+}
+
+/* =======================
+   PDFMake: modelos e geração
+   ======================= */
+
+const rodapeTexto = "_________________________________________________________________________________________\nAvenida Dona Maria Alves, n° 438 – Loja 2 – 1° Andar, Centro Ubatuba/SP - CEP:11690-174 – BRASIL\nFones: (12) 9.9660-9801 · E-mail: debo_raubatuba@hotmail.com";
+
+function montarHeader() {
+  if (logoDataUrl) {
+    return { columns: [{ image: logoDataUrl, width: 300 }], margin: [40, 8, 40, 0] };
+  } else {
+    return { text: 'DÉBORA CASTILHO — ADVOCACIA & ASSESSORIA JURÍDICA', alignment: 'center', margin: [40, 14, 40, 0], bold: true };
+  }
+}
+function montarFooter() {
+  return { columns: [{ text: rodapeTexto, alignment: 'center', fontSize: 9 }], margin: [40, 0, 40, 12] };
+}
+
+function docDefProcuracao(d) {
+  const finalidade = d.finalidadeProc || '';
+  const content = [
+    { text: 'INSTRUMENTO PROCURATÓRIO', style: 'title' },
+    { text: '\n' },
+    { text: `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula “ad judicia et extra”, em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`, style: 'main', alignment: 'justify' }
+  ];
+  if (finalidade) {
+    content.push({ text: '\n' });
+    content.push({ text: `Finalidade: ${finalidade}`, bold: true });
+  }
+  content.push({ text: '\n\n' });
+  content.push({ text: `Ubatuba, ${d.dataExtenso}.`, alignment: 'right' });
+  content.push({ text: '\n\n\n' });
+  content.push({ text: '_________________________________________', alignment: 'center' });
+  content.push({ text: d.contratante.toUpperCase(), alignment: 'center', bold: true });
+
+  return {
+    pageSize: 'A4',
+    pageMargins: [40, 80, 40, 80],
+    header: montarHeader,
+    footer: montarFooter,
+    content,
+    styles: { title: { fontSize: 16, bold: true, alignment: 'center' }, main: { fontSize: 12, lineHeight: 1.4 } }
+  };
+}
+
+function docDefDeclaracao(d) {
+  const content = [
+    { text: 'D E C L A R A Ç Ã O', style: 'title' },
+    { text: '\n' },
+    { text: `${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, DECLARA para os devidos fins, ser pobre na acepção jurídica do termo, não possuindo meios econômicos para arcar com quaisquer custas processuais ou honorários relativos à presente contenda, sem que venha comprometer o sustento próprio e da sua família, necessitando, desta forma, dos benefícios da JUSTIÇA GRATUITA, nos termos do artigo 5º, inciso LXXIV e XXXV da Constituição Federal da República; outrossim, informa a declarante que se encontra na condição de isenção perante a Receita Federal do Brasil.`, style: 'main', alignment: 'justify' },
+    { text: '\n\n' },
+    { text: `Ubatuba, ${d.dataExtenso}.`, alignment: 'right' },
+    { text: '\n\n\n' },
+    { columns: [{ width: '*', text: '' }, { width: 'auto', stack: [{ text: '_________________________________________', alignment: 'center' }, { text: d.contratante.toUpperCase(), alignment: 'center', bold: true }] }, { width: '*', text: '' }], margin: [0, 18, 0, 0] }
+  ];
+  return {
+    pageSize: 'A4',
+    pageMargins: [40, 80, 40, 80],
+    header: montarHeader,
+    footer: montarFooter,
+    content,
+    styles: { title: { fontSize: 16, bold: true, alignment: 'center' }, main: { fontSize: 12, lineHeight: 1.4 } }
+  };
+}
+
+function docDefContrato(d) {
+  const parcelasTxt = gerarTextoParcelas(d.valorParcela, d.qtdParcelas, d.primeiroVencimento);
+  const valorExt = (d.valorPropositura && valorParaExtenso(d.valorPropositura)) || d.valorPropositura || '';
+  const content = [
+    { text: 'CONTRATO DE HONORÁRIOS ADVOCATÍCIOS', style: 'title' },
+    { text: '\n' },
+    { text: 'DAS PARTES', bold: true },
+    { text: '\n' },
+    { text: `CONTRATANTE: ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || '--'} e inscrito no CPF sob o nº ${d.cpfCnpj || '--'}, residente e domiciliado na ${d.enderecoCompleto || '--'}.`, style: 'main', alignment: 'justify' },
+    { text: '\n' },
+    { text: `CONTRATADA: DRA. DÉBORA FERNANDA CASTILHO, OAB/SP 501.311, com escritório na Av. Dona Maria Alves, nº 438, Sala 2, 1° andar, Centro, Ubatuba - SP.`, style: 'main', alignment: 'justify' },
+    { text: '\n' },
+    { text: 'OBJETO DO CONTRATO — CLÁUSULA 1', bold: true },
+    { text: `O presente contrato tem por objetivo a prestação de serviços advocatícios para a defesa dos interesses do CONTRATANTE, relativos à Ação de ${d.motivoAcao || 'não especificado'}.`, style: 'main', alignment: 'justify' },
+    { text: '\n' },
+    { text: 'DA FORMA DE COBRANÇA DOS HONORÁRIOS — CLÁUSULA 7', bold: true },
+    { text: `O CONTRATANTE pagará à CONTRATADA, a título de pro labore final, ${d.proLabore || '30%'}, e para a propositura da ação o valor de ${d.valorPropositura || ''} ${valorExt ? '(' + valorExt + ')' : ''}${parcelasTxt ? ' sendo pagos conforme segue: ' + parcelasTxt : ''}`, style: 'main', alignment: 'justify' },
+    { text: '\n\n' },
+    { text: `Ubatuba, ${d.dataExtenso}.`, alignment: 'right' },
+    { text: '\n\n\n' },
+    { columns: [{ width: '*', text: '' }, { width: 'auto', stack: [{ text: '_________________________________________', alignment: 'center' }, { text: d.contratante.toUpperCase(), alignment: 'center', bold: true }] }, { width: 'auto', stack: [{ text: '_________________________________________', alignment: 'center' }, { text: 'DÉBORA FERNANDA CASTILHO', alignment: 'center', bold: true }, { text: 'OAB/SP 501.311', alignment: 'center' }] }, { width: '*', text: '' }], margin: [0, 18, 0, 0] }
+  ];
+  return {
+    pageSize: 'A4',
+    pageMargins: [40, 80, 40, 80],
+    header: montarHeader,
+    footer: montarFooter,
+    content,
+    styles: { title: { fontSize: 16, bold: true, alignment: 'center' }, main: { fontSize: 12, lineHeight: 1.4 } }
+  };
+}
+
+/* gera o PDF */
+function gerarPDF(tipo) {
+  const d = coletarDadosGlobais();
+  let doc = null;
+  if (tipo === 'procuracao') doc = docDefProcuracao(d);
+  if (tipo === 'declaracao') doc = docDefDeclaracao(d);
+  if (tipo === 'contrato') doc = docDefContrato(d);
+  if (!doc) { alert('Tipo inválido'); return; }
+
+  // caso logoDataUrl ainda não tenha sido carregada, tenta carregar antes
+  if (!logoDataUrl) {
+    loadHeaderLogo().then(() => {
+      pdfMake.createPdf(doc).download('documento_' + tipo + '.pdf');
+    });
+  } else {
+    pdfMake.createPdf(doc).download('documento_' + tipo + '.pdf');
+  }
+}
+
+/* =======================
+   Botões de ação
+   ======================= */
+
+document.getElementById('pdfProcuracaoBtn').addEventListener('click', () => { renderPreviewProcuracao(); gerarPDF('procuracao'); });
+document.getElementById('pdfDeclaracaoBtn').addEventListener('click', () => { renderPreviewDeclaracao(); gerarPDF('declaracao'); });
+document.getElementById('pdfContratoBtn').addEventListener('click', () => { renderPreviewContrato(); gerarPDF('contrato'); });
+
+document.getElementById('salvarDadosBtn').addEventListener('click', () => {
+  // validação básica (mesmo comportamento anterior)
+  const obrig = ['contratante','profissao','cpfCnpj','endereco','numero','bairro','cep','data'];
+  for (const id of obrig) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) { alert('Preencha o campo obrigatório: ' + id); el && el.focus(); return; }
+  }
+  alert('Informações salvas localmente no formulário. Você pode gerar os documentos nas abas correspondentes.');
+});
+
+/* helpers: render preview initially */
+renderPreviewProcuracao();
+renderPreviewDeclaracao();
+renderPreviewContrato();
+</script>
+</body>
+</html>
