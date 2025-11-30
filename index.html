@@ -9,6 +9,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
 <style>
   :root{
     --bg:#f4f6f8;
@@ -43,10 +47,41 @@
   .btn-muted{background:#f6f8f9;color:var(--accent);border:1px solid #e7ebee}
   .preview{border:1px solid #e9eef2;border-radius:8px;padding:14px;background:#fff;min-height:260px;white-space:pre-wrap}
   .footer-note{margin-top:14px;font-size:13px;color:var(--muted);text-align:center}
+  
+  /* Modal */
+  .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.5)}
+  .modal-content{background-color:#fff;margin:15% auto;padding:20px;border-radius:8px;width:90%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+  .modal-header h2{margin:0;color:var(--accent)}
+  .close{color:#aaa;font-size:28px;font-weight:bold;cursor:pointer}
+  .close:hover{color:#000}
+  .modal-body input{width:100%;padding:10px;margin-bottom:15px;border-radius:8px;border:1px solid #e3e7ea}
+  .modal-footer{display:flex;justify-content:flex-end;gap:10px}
+  
+  /* Bloqueio de conteúdo */
+  .content-blocked{display:none}
+  
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<!-- Modal de Login -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Acesso Restrito</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="email" id="loginEmail" placeholder="E-mail" />
+      <input type="password" id="loginPassword" placeholder="Senha" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn-muted" id="loginBtn">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="card">
     <header class="top">
@@ -60,175 +95,248 @@
       </div>
 
       <div style="margin-left:auto;text-align:right">
-        <div class="small">As logos são carregadas automaticamente do repositório GitHub configurado.</div>
+        <div class="small">Débora Castilho</div>
+        <button class="btn-muted" id="logoutBtn" style="display:none;margin-top:5px;">Sair</button>
       </div>
     </header>
 
-    <nav class="tabs" role="tablist">
-      <div class="tab active" data-tab="dados">Dados do Contratante</div>
-      <div class="tab" data-tab="procuracao">Procuração</div>
-      <div class="tab" data-tab="declaracao">Declaração de Pobreza</div>
-      <div class="tab" data-tab="contrato">Contrato de Honorários</div>
-    </nav>
+    <div id="mainContent" class="content-blocked">
+      <nav class="tabs" role="tablist">
+        <div class="tab active" data-tab="dados">Dados do Contratante</div>
+        <div class="tab" data-tab="procuracao">Procuração</div>
+        <div class="tab" data-tab="declaracao">Declaração de Pobreza</div>
+        <div class="tab" data-tab="contrato">Contrato de Honorários</div>
+      </nav>
 
-    <!-- DADOS DO CONTRATANTE -->
-    <form id="form-dados" class="section active" onsubmit="return false">
-      <div class="grid">
-        <div>
-          <label>Contratante</label>
-          <input type="text" id="contratante" placeholder="Nome completo" />
+      <!-- DADOS DO CONTRATANTE -->
+      <form id="form-dados" class="section active" onsubmit="return false">
+        <div class="grid">
+          <div>
+            <label>Contratante</label>
+            <input type="text" id="contratante" placeholder="Nome completo" />
+          </div>
+
+          <div>
+            <label>Nacionalidade</label>
+            <!-- NÃO é select: editável, valor padrão 'brasileiro(a)' -->
+            <input type="text" id="nacionalidade" value="brasileiro(a)" />
+          </div>
+
+          <div>
+            <label>Estado Civil</label>
+            <select id="estadoCivil"><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select>
+          </div>
+
+          <div>
+            <label>Profissão</label>
+            <input type="text" id="profissao" />
+          </div>
+
+          <div>
+            <label>RG</label>
+            <input type="text" id="rg" />
+          </div>
+
+          <div>
+            <label>CPF / CNPJ</label>
+            <input type="text" id="cpfCnpj" placeholder="CPF ou CNPJ" />
+          </div>
+
+          <div class="full">
+            <label>Endereço</label>
+            <input type="text" id="endereco" />
+          </div>
+
+          <div>
+            <label>Número</label>
+            <input type="text" id="numero" />
+          </div>
+
+          <div>
+            <label>Complemento</label>
+            <input type="text" id="complemento" />
+          </div>
+
+          <div>
+            <label>Bairro</label>
+            <input type="text" id="bairro" />
+          </div>
+
+          <div>
+            <label>CEP</label>
+            <input type="text" id="cep" placeholder="11695-738" />
+          </div>
+
+          <div>
+            <label>E-mail</label>
+            <input type="email" id="email" />
+          </div>
+
+          <div>
+            <label>Data</label>
+            <input type="date" id="data" />
+          </div>
         </div>
 
-        <div>
-          <label>Nacionalidade</label>
-          <!-- NÃO é select: editável, valor padrão 'brasileiro(a)' -->
-          <input type="text" id="nacionalidade" value="brasileiro(a)" />
+        <div class="actions">
+          <button class="btn-muted" id="salvarDadosBtn">Salvar</button>
+        </div>
+      </form>
+
+      <!-- PROCURAÇÃO -->
+      <form id="form-procuracao" class="section" onsubmit="return false">
+        <div class="grid">
+          <div class="full">
+            <label>Finalidade da Procuração</label>
+            <!-- caixa reduzida (duas linhas) e pré-carregada -->
+            <textarea id="finalidadeProc" rows="2"></textarea>
+          </div>
+
+          <div class="full">
+            <label>Simulação do documento</label>
+            <div id="preview-procuracao" class="preview"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="pdfProcuracaoBtn">Criar PDF</button>
+        </div>
+      </form>
+
+      <!-- DECLARAÇÃO -->
+      <form id="form-declaracao" class="section" onsubmit="return false">
+        <div class="grid">
+          <div class="full">
+            <label>Simulação do documento</label>
+            <div id="preview-declaracao" class="preview"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="pdfDeclaracaoBtn">Criar PDF</button>
+        </div>
+      </form>
+
+      <!-- CONTRATO DE HONORÁRIOS -->
+      <form id="form-contrato" class="section" onsubmit="return false">
+        <div class="grid">
+          <div>
+            <label>Motivo da Ação</label>
+            <input type="text" id="c_motivoAcao" value="DANOS MORAIS E MATERIAIS" />
+          </div>
+
+          <div>
+            <label>% Pro-labore</label>
+            <input type="text" id="c_proLabore" value="30%" />
+          </div>
+
+          <div>
+            <label>Valor Propositura</label>
+            <input type="text" id="c_valorPropositura" placeholder="R$ 1.500,00" value="R$ 1.500,00" />
+          </div>
+
+          <div>
+            <label>Qtd de Parcelas</label>
+            <input type="number" id="c_qtdParcelas" min="1" value="5" />
+          </div>
+
+          <div>
+            <label>Valor da Parcela</label>
+            <input type="text" id="c_valorParcela" placeholder="R$ 0,00" />
+          </div>
+
+          <div>
+            <label>1º Vencimento</label>
+            <input type="date" id="c_primeiroVencimento" />
+          </div>
+
+          <div class="full">
+            <label>Simulação do documento</label>
+            <div id="preview-contrato" class="preview"></div>
+          </div>
         </div>
 
-        <div>
-          <label>Estado Civil</label>
-          <select id="estadoCivil"><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select>
+        <div class="actions">
+          <button class="btn-primary" id="pdfContratoBtn">Criar PDF</button>
         </div>
+      </form>
 
-        <div>
-          <label>Profissão</label>
-          <input type="text" id="profissao" />
-        </div>
-
-        <div>
-          <label>RG</label>
-          <input type="text" id="rg" />
-        </div>
-
-        <div>
-          <label>CPF / CNPJ</label>
-          <input type="text" id="cpfCnpj" placeholder="CPF ou CNPJ" />
-        </div>
-
-        <div class="full">
-          <label>Endereço</label>
-          <input type="text" id="endereco" />
-        </div>
-
-        <div>
-          <label>Número</label>
-          <input type="text" id="numero" />
-        </div>
-
-        <div>
-          <label>Complemento</label>
-          <input type="text" id="complemento" />
-        </div>
-
-        <div>
-          <label>Bairro</label>
-          <input type="text" id="bairro" />
-        </div>
-
-        <div>
-          <label>CEP</label>
-          <input type="text" id="cep" placeholder="11695-738" />
-        </div>
-
-        <div>
-          <label>E-mail</label>
-          <input type="email" id="email" />
-        </div>
-
-        <div>
-          <label>Data</label>
-          <input type="date" id="data" />
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn-muted" id="salvarDadosBtn">Salvar</button>
-      </div>
-    </form>
-
-    <!-- PROCURAÇÃO -->
-    <form id="form-procuracao" class="section" onsubmit="return false">
-      <div class="grid">
-        <div class="full">
-          <label>Finalidade da Procuração</label>
-          <!-- caixa reduzida (duas linhas) e pré-carregada -->
-          <textarea id="finalidadeProc" rows="2"></textarea>
-        </div>
-
-        <div class="full">
-          <label>Visualização completa do documento</label>
-          <div id="preview-procuracao" class="preview"></div>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn-primary" id="pdfProcuracaoBtn">Criar PDF</button>
-      </div>
-    </form>
-
-    <!-- DECLARAÇÃO -->
-    <form id="form-declaracao" class="section" onsubmit="return false">
-      <div class="grid">
-        <div class="full">
-          <label>Visualização completa do documento</label>
-          <div id="preview-declaracao" class="preview"></div>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn-primary" id="pdfDeclaracaoBtn">Criar PDF</button>
-      </div>
-    </form>
-
-    <!-- CONTRATO DE HONORÁRIOS -->
-    <form id="form-contrato" class="section" onsubmit="return false">
-      <div class="grid">
-        <div>
-          <label>Motivo da Ação</label>
-          <input type="text" id="c_motivoAcao" />
-        </div>
-
-        <div>
-          <label>% Pro-labore</label>
-          <input type="text" id="c_proLabore" value="30%" />
-        </div>
-
-        <div>
-          <label>Valor Propositura</label>
-          <input type="text" id="c_valorPropositura" placeholder="R$ 1.500,00" />
-        </div>
-
-        <div>
-          <label>Qtd de Parcelas</label>
-          <input type="number" id="c_qtdParcelas" min="1" value="1" />
-        </div>
-
-        <div>
-          <label>Valor da Parcela</label>
-          <input type="text" id="c_valorParcela" placeholder="R$ 0,00" />
-        </div>
-
-        <div>
-          <label>1º Vencimento</label>
-          <input type="date" id="c_primeiroVencimento" />
-        </div>
-
-        <div class="full">
-          <label>Visualização completa do documento</label>
-          <div id="preview-contrato" class="preview"></div>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn-primary" id="pdfContratoBtn">Criar PDF</button>
-      </div>
-    </form>
-
-    <div class="footer-note">Todos os PDFs terão cabeçalho com a imagem do repositório (logo_dc_novo.png). A logo do site é carregada separadamente.</div>
-
+      <div class="footer-note">...</div>
+    </div>
   </div>
 </div>
 
 <script>
 console.log("SCRIPT INICIADO");
+
+/* =======================
+   Firebase Authentication
+   ======================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyD26PRNiwL8oiytAw5A5TxdiNfArZwPanM",
+  authDomain: "indicacao-830b9.firebaseapp.com",
+  databaseURL: "https://indicacao-830b9-default-rtdb.firebaseio.com",
+  projectId: "indicacao-830b9",
+  storageBucket: "indicacao-830b9.firebasestorage.app",
+  messagingSenderId: "909425678755",
+  appId: "1:909425678755:web:0be8effae0195223cae216"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Referências do DOM para autenticação
+const loginModal = document.getElementById('loginModal');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const mainContent = document.getElementById('mainContent');
+const closeModal = document.querySelector('.close');
+
+// Verificar estado de autenticação
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    // Usuário logado
+    loginModal.style.display = 'none';
+    mainContent.style.display = 'block';
+    logoutBtn.style.display = 'block';
+  } else {
+    // Usuário não logado
+    loginModal.style.display = 'block';
+    mainContent.style.display = 'none';
+    logoutBtn.style.display = 'none';
+  }
+});
+
+// Login
+loginBtn.addEventListener('click', () => {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      // Login bem-sucedido
+      console.log('Usuário logado:', userCredential.user);
+    })
+    .catch((error) => {
+      alert('Erro no login: ' + error.message);
+    });
+});
+
+// Logout
+logoutBtn.addEventListener('click', () => {
+  firebase.auth().signOut();
+});
+
+// Fechar modal
+closeModal.addEventListener('click', () => {
+  loginModal.style.display = 'none';
+});
+
+// Fechar modal ao clicar fora
+window.addEventListener('click', (event) => {
+  if (event.target === loginModal) {
+    loginModal.style.display = 'none';
+  }
+});
+
 /* =======================
    Configurações de logo
    ======================= */
@@ -387,6 +495,36 @@ function valorParaExtenso(valorStr) {
 }
 
 /* =======================
+   Validação de campos obrigatórios
+   ======================= */
+
+function validarCamposObrigatorios(tipo) {
+  const camposObrigatorios = {
+    dados: ['contratante', 'nacionalidade', 'estadoCivil', 'profissao', 'rg', 'cpfCnpj', 'endereco', 'numero', 'bairro', 'cep', 'data'],
+    procuracao: ['contratante', 'nacionalidade', 'estadoCivil', 'profissao', 'rg', 'cpfCnpj', 'endereco', 'numero', 'bairro', 'cep', 'data', 'finalidadeProc'],
+    declaracao: ['contratante', 'nacionalidade', 'estadoCivil', 'profissao', 'rg', 'cpfCnpj', 'endereco', 'numero', 'bairro', 'cep', 'data'],
+    contrato: ['contratante', 'nacionalidade', 'estadoCivil', 'profissao', 'rg', 'cpfCnpj', 'endereco', 'numero', 'bairro', 'cep', 'data', 'c_motivoAcao', 'c_proLabore', 'c_valorPropositura', 'c_qtdParcelas', 'c_valorParcela', 'c_primeiroVencimento']
+  };
+
+  const campos = camposObrigatorios[tipo] || [];
+  const camposFaltantes = [];
+
+  for (const campoId of campos) {
+    const campo = document.getElementById(campoId);
+    if (campo && !campo.value.trim()) {
+      camposFaltantes.push(campoId);
+    }
+  }
+
+  if (camposFaltantes.length > 0) {
+    alert(`Por favor, preencha todos os campos obrigatórios antes de gerar o PDF.\nCampos faltantes: ${camposFaltantes.join(', ')}`);
+    return false;
+  }
+
+  return true;
+}
+
+/* =======================
    Eventos: máscaras, cálculos e previews
    ======================= */
 
@@ -451,6 +589,9 @@ camposParaPreview.forEach(id => {
 
   document.getElementById('finalidadeProc').value = "Ação judicial – Indenização por Danos Morais e Materiais";
 
+  // Calcular valor da parcela inicial
+  atualizarValorParcelaAutomatico();
+
   // executar previews iniciais
   renderPreviewProcuracao();
   renderPreviewDeclaracao();
@@ -514,47 +655,50 @@ function escapeHtml(s) { return (s||'').toString().replace(/&/g,'&amp;').replace
 
 function renderPreviewProcuracao() {
   const d = coletarDadosGlobais();
-  const lines = [];
-  lines.push("INSTRUMENTO PROCURATÓRIO");
-  lines.push("");
-  lines.push("");
-  const content = `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula "ad judicia et extra", em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`;
-  const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">${escapeHtml(lines[0])}</div>
+  const content = `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula "ad judicia et extra", em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato, para agir em conjunto ou separadamente com o substabelecido.`;
+  
+  const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">INSTRUMENTO PROCURATÓRIO</div>
   <div style="height:12px;"></div>
-  <div style="text-align:justify;line-height:1.5">${escapeHtml(content)}</div>
+  <div style="text-align:justify;line-height:1.5;font-size:12px">${escapeHtml(content)}</div>
   <div style="margin-top:10px;font-weight:700">Finalidade: ${escapeHtml(d.finalidadeProc)}</div>
   <div style="text-align:right;margin-top:18px">Ubatuba, ${d.dataExtenso}</div>
   <div style="height:40px"></div>
-  <div style="text-align:center">_________________________________________<br>${escapeHtml(d.contratante.toUpperCase())}</div>`
+  <div style="text-align:center">_________________________________________<br>${escapeHtml(d.contratante.toUpperCase())}</div>`;
+  
   document.getElementById('preview-procuracao').innerHTML = html;
 }
 
 function renderPreviewDeclaracao() {
   const d = coletarDadosGlobais();
-  const titulo = "D E C L A R A Ç Ã O";
-  const content = `${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, DECLARA para os devidos fins, ser pobre na acepção jurídica do termo, não possuindo meios econômicos para arcar com quaisquer custas processuais ou honorários relativos à presente contenda, sem que venha comprometer o sustento próprio e da sua família, necessitando, desta forma, dos benefícios da JUSTIÇA GRATUITA, nos termos do artigo 5º, inciso LXXIV e XXXV da Constituição Federal da República; outrossim, informa a declarante que se encontra na condição de isenção perante a Receita Federal do Brasil...`;
-  const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">${escapeHtml(titulo)}</div>
+  const content = `${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, DECLARA para os devidos fins, ser pobre na acepção jurídica do termo, não possuindo meios econômicos para arcar com quaisquer custas processuais ou honorários relativos a presente contenda, sem que venha comprometer o sustento próprio e da sua família, necessitando, desta forma, dos benefícios da JUSTIÇA GRATUITA, nos termos do artigo 5º, inciso LXXIV e XXXV da Constituição Federal da República; outrossim, informa a declarante que se encontra na condição de isenção perante a Receita Federal do Brasil e, portanto, comprova seu estado de miserabilidade na forma do artigo 99, §3º da Lei Federal nº. 13.105/2015, com suas posteriores alterações.<br><br>
+Ressaltando que no próprio sítio eletrônico da Secretaria da Receita Federal do Brasil informa que a Declaração de Isento deixou de existir, a partir do ano de 2008, sendo suficiente para comprovar tal condição a declaração escrita e assinada pelo próprio interessado, in verbis: "Informamos que a Declaração Anual de Isento (DAI) da Secretaria da Receita Federal do Brasil foi instituída com o objetivo de manter atualizado o Cadastro de Pessoas Físicas (CPF). Com a edição da Instrução Normativa RFB nº 864/2008, de 25 de julho de 2008, deixou de existir a Declaração Anual de Isento, a partir do ano de 2008. A isenção poderá ser comprovada mediante declaração escrita e assinada pelo próprio interessado, conforme previsto na Lei Federal nº. 13.105/2015".`;
+  
+  const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">D E C L A R A Ç Ã O</div>
   <div style="height:12px;"></div>
-  <div style="text-align:justify;line-height:1.5">${escapeHtml(content)}</div>
+  <div style="text-align:justify;line-height:1.5;font-size:11px">${escapeHtml(content)}</div>
   <div style="text-align:right;margin-top:18px">Ubatuba, ${d.dataExtenso}</div>
   <div style="height:40px"></div>
   <div style="text-align:center">_________________________________________<br>${escapeHtml(d.contratante.toUpperCase())}</div>`;
+  
   document.getElementById('preview-declaracao').innerHTML = html;
 }
 
 function renderPreviewContrato() {
   const d = coletarDadosGlobais();
-  const motivo = d.motivoAcao || 'não especificado';
-  const proLab = d.proLabore || '30%';
-  const valor = d.valorPropositura || 'R$ 0,00';
   const parcelasTxt = gerarTextoParcelas(d.valorParcela, d.qtdParcelas, d.primeiroVencimento);
+  
   const html = `<div style="text-align:center;font-weight:800;margin-bottom:8px">CONTRATO DE HONORÁRIOS ADVOCATÍCIOS</div>
-  <div style="text-align:left;line-height:1.4">
-  <strong>DAS PARTES</strong><br><br>
-  CONTRATANTE: ${escapeHtml(d.contratante.toUpperCase())}, ${escapeHtml(d.nacionalidade)}, ${escapeHtml(d.estadoCivil)}, ${escapeHtml(d.profissao)}, portador do RG nº ${escapeHtml(d.rg||'--')} e inscrito no CPF sob o nº ${escapeHtml(d.cpfCnpj||'--')}, residente e domiciliado na ${escapeHtml(d.enderecoCompleto||'--')}.<br><br>
-  OBJETO: prestação de serviços advocatícios relativos à Ação de ${escapeHtml(motivo)}.<br><br>
-  DA FORMA DE COBRANÇA: pro-labore de ${escapeHtml(proLab)}, para a propositura da ação o valor de ${escapeHtml(valor)}${parcelasTxt ? '<br>Parcelamento: ' + escapeHtml(parcelasTxt) : ''}
-
+  <div style="text-align:left;line-height:1.3;font-size:11px">
+    <strong>DAS PARTES</strong><br>
+    Contrato de Prestação de Serviço que fazem de um lado; CONTRATANTE ${escapeHtml(d.contratante.toUpperCase())}, ${escapeHtml(d.nacionalidade)}, ${escapeHtml(d.estadoCivil)}, ${escapeHtml(d.profissao)}, portador do RG nº ${escapeHtml(d.rg||'--')} e inscrito no CPF sob o nº ${escapeHtml(d.cpfCnpj||'--')}, residente e domiciliado na ${escapeHtml(d.enderecoCompleto||'--')}, endereço eletrônico: ${escapeHtml(d.email||'--')}, cidade de Ubatuba– SP.<br><br>
+    O Contratante está ciente que foi devidamente instruído por sua advogada sobre seus direitos e sendo feito, optou em fazê-lo com a contratada, que por sua vez poderá substabelecer com ou sem reservas o presente para especialistas advogados, contabilistas e/ou contratados para o melhor suporte junto ao Contratante.<br><br>
+    De outro lado; CONTRATADA DRA. DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501.311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Avenida Dona Maria Alves, nº 438, Sala 2,1° andar, Bairro Centro, CEP 11690-402, Cidade de Ubatuba, Estado de São Paulo, onde recebe informações e notificações.<br><br>
+    
+    <strong>OBJETO DO CONTRATO — CLÁUSULA 1</strong><br>
+    O presente contrato tem por objetivo a prestação de serviços advocatícios para a defesa dos interesses do CONTRATANTE, por parte da Advogada contratada, para o fim de proceder na Ação de ${escapeHtml(d.motivoAcao || 'não especificado')}, nesta Comarca de Ubatuba/SP, pelas cláusulas e condições a seguir expostas:<br><br>
+    
+    <strong>DA FORMA DE COBRANÇA DOS HONORÁRIOS ADVOCATÍCIOS — CLÁUSULA 7</strong><br>
+    O CONTRATANTE, como contraprestação aos serviços jurídicos prestados, pagará à CONTRATADA, a título de pro labore final, ${escapeHtml(d.proLabore || '30%')} do valor da causa, sendo essa procedente, e para a propositura da ação o valor de ${escapeHtml(d.valorPropositura || '')}${parcelasTxt ? ', feito os pagamentos à CONTRATADA pela chave pix mariajuliacastilho6@gmail.com, os quais serão pagos da seguinte forma; ' + escapeHtml(parcelasTxt) : ''}
   </div>
   <div style="text-align:right;margin-top:18px">Ubatuba, ${d.dataExtenso}</div>
   <div style="height:40px"></div>
@@ -562,6 +706,7 @@ function renderPreviewContrato() {
     <div style="text-align:center">_________________________________________<br>${escapeHtml(d.contratante.toUpperCase())}</div>
     <div style="text-align:center">_________________________________________<br>DÉBORA FERNANDA CASTILHO<br>OAB/SP 501.311</div>
   </div>`;
+  
   document.getElementById('preview-contrato').innerHTML = html;
 }
 
@@ -569,56 +714,98 @@ function renderPreviewContrato() {
    cuidando para não gerar 'undefined' no valor por extenso */
 function gerarTextoParcelas(valorParcela, qtdParcelas, primeiroVenc) {
   if (!valorParcela || !primeiroVenc) return '';
-  const valorStr = valorParcela;
+  
+  const valorStr = valorParcela.replace(/[R$\s]/g,'');
   const qtd = parseInt(qtdParcelas) || 1;
   const d = new Date(primeiroVenc + 'T00:00:00');
   const datas = [];
+  
   for (let i = 0; i < qtd; i++) {
     let n = new Date(d);
     n.setMonth(d.getMonth() + i);
     datas.push(n.toLocaleDateString('pt-BR'));
   }
-  const ext = valorParaExtenso(valorStr) || valorStr;
-  let txt = `R$ ${valorStr.replace(/[R$\s]/g,'')} (${ext}) na data de ${datas[0]}`;
-  if (qtd > 1) {
-    txt += `, e mais ${qtd-1} parcelas mensais de R$ ${valorStr.replace(/[R$\s]/g,'')}`;
-    txt += `, sendo a primeira em ${datas[0]}`;
-    for (let i = 1; i < qtd; i++) txt += `, a ${i+1}ª para ${datas[i]}`;
+  
+  const ext = valorParaExtenso(valorParcela) || valorStr;
+  
+  if (qtd === 1) {
+    return `${valorParcela} (${ext}) na data de ${datas[0]}`;
+  } else {
+    let txt = `${valorParcela} (${ext}) para inicio da ação, e mais ${qtd-1} parcelas no valor de ${valorParcela} (${ext}), com data para todo dia ${d.getDate()} de cada mês`;
+    
+    for (let i = 0; i < qtd; i++) {
+      if (i === 0) {
+        txt += `, sendo a primeira para ${datas[0]} (entrada)`;
+      } else {
+        txt += `, a ${i+1}ª para ${datas[i]}`;
+      }
+    }
     txt += '.';
-  } else txt += '.';
-  return txt;
+    return txt;
+  }
 }
 
 /* =======================
    PDFMake: modelos e geração
    ======================= */
 
-const rodapeTexto = "_________________________________________________________________________________________\nAvenida Dona Maria Alves, n° 438 – Loja 2 – 1° Andar, Centro Ubatuba/SP - CEP:11690-174 – BRASIL\nFones: (12) 9.9660-9801 · E-mail: debo_raubatuba@hotmail.com";
+const rodapeTexto = "______________________________________________________________________________________________________\nAvenida Dona Maria Alves, n° 438 – Loja 2 – 1° Andar, Centro Ubatuba/SP - CEP:11690-174 – BRASIL\nFones: (12) 9.9660-9801 · E-mail: debo_raubatuba@hotmail.com";
 
 function montarHeader() {
   if (logoDataUrl) {
-    return { columns: [{ image: logoDataUrl, width: 300 }], margin: [40, 8, 40, 0] };
+    return { 
+      stack: [
+        { 
+          image: logoDataUrl, 
+          width: 300, 
+          alignment: 'center',
+          margin: [0, 8, 0, 0]
+        }
+      ],
+      margin: [40, 8, 40, 0]
+    };
   } else {
-    return { text: 'DÉBORA CASTILHO — ADVOCACIA & ASSESSORIA JURÍDICA', alignment: 'center', margin: [40, 14, 40, 0], bold: true };
+    return { 
+      text: 'DÉBORA CASTILHO — ADVOCACIA & ASSESSORIA JURÍDICA', 
+      alignment: 'center', 
+      margin: [40, 14, 40, 0], 
+      bold: true 
+    };
   }
 }
+
 function montarFooter() {
   return { columns: [{ text: rodapeTexto, alignment: 'center', fontSize: 9 }], margin: [40, 0, 40, 12] };
 }
 
 function docDefProcuracao(d) {
   const finalidade = d.finalidadeProc || '';
+  
   const content = [
     { text: 'INSTRUMENTO PROCURATÓRIO', style: 'title' },
-    { text: '\n' },
-    { text: `Eu, ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada DÉBORA FERNANDA CASTILHO brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula "ad judicia et extra", em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato.`, style: 'main', alignment: 'justify' }
+    { text: '\n\n' },
+    { 
+      text: [
+        'Eu, ',
+        { text: d.contratante.toUpperCase(), bold: true },
+        `, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, neste ato nomeio e constituo, como procuradora a advogada `,
+        { text: 'DÉBORA FERNANDA CASTILHO', bold: true },
+        ` brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº `,
+        { text: '501311', bold: true },
+        `, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Av. Dona Maria Alves, nº 438, Bairro Centro, Cidade de Ubatuba, Estado de São Paulo, CEP 11690-174, outorgando-lhe amplo poder para o foro em geral, com cláusula "ad judicia et extra", em qualquer Juízo, Instância, Tribunal ou Repartição Pública, podendo propor contra quem de direito, as ações competentes e defendê-lo nas contrárias, seguindo umas e outras, até final decisão, usando os recursos legais e acompanhando-os, conferindo-lhes ainda, poderes especiais para receber citação inicial, confessar, e conhecer a procedência do pedido, desistir, renunciar ao direito sobre que se funda a ação, transigir, firmar compromisso ou acordos, receber e dar quitação, podendo agir em Juízo ou fora dele, assim como substabelecer esta a outrem, com ou sem reservas de iguais poderes do presente mandato, para agir em conjunto ou separadamente com o substabelecido.`
+      ], 
+      style: 'main', 
+      alignment: 'justify' 
+    },
+    { text: '\n\n' }
   ];
+  
   if (finalidade) {
-    content.push({ text: '\n' });
-    content.push({ text: `Finalidade: ${finalidade}`, bold: true });
+    content.push({ text: `Finalidade: ${finalidade}`, style: 'main', alignment: 'left' });
+    content.push({ text: '\n\n' });
   }
-  content.push({ text: '\n\n' });
-  content.push({ text: `Ubatuba, ${d.dataExtenso}.`, alignment: 'right' });
+  
+  content.push({ text: `Ubatuba, ${d.dataExtenso}.`, style: 'main', alignment: 'right' });
   content.push({ text: '\n\n\n' });
   content.push({ text: '_________________________________________', alignment: 'center' });
   content.push({ text: d.contratante.toUpperCase(), alignment: 'center', bold: true });
@@ -629,64 +816,250 @@ function docDefProcuracao(d) {
     header: montarHeader,
     footer: montarFooter,
     content,
-    styles: { title: { fontSize: 16, bold: true, alignment: 'center' }, main: { fontSize: 12, lineHeight: 1.4 } }
+    styles: { 
+      title: { fontSize: 14, bold: true, alignment: 'center' }, 
+      main: { fontSize: 11, lineHeight: 1.4 } 
+    }
   };
 }
 
 function docDefDeclaracao(d) {
   const content = [
-    { text: 'D E C L A R A Ç Ã O', style: 'title' },
-    { text: '\n' },
-    { text: `${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, DECLARA para os devidos fins, ser pobre na acepção jurídica do termo, não possuindo meios econômicos para arcar com quaisquer custas processuais ou honorários relativos à presente contenda, sem que venha comprometer o sustento próprio e da sua família, necessitando, desta forma, dos benefícios da JUSTIÇA GRATUITA, nos termos do artigo 5º, inciso LXXIV e XXXV da Constituição Federal da República; outrossim, informa a declarante que se encontra na condição de isenção perante a Receita Federal do Brasil.`, style: 'main', alignment: 'justify' },
+    { text: 'DECLARAÇÃO', style: 'title' },
     { text: '\n\n' },
-    { text: `Ubatuba, ${d.dataExtenso}.`, alignment: 'right' },
+    { 
+      text: [
+        { text: d.contratante.toUpperCase(), bold: true },
+        `, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || 'não informado'} e inscrito no CPF sob o nº ${d.cpfCnpj || 'não informado'}, residente e domiciliado na ${d.enderecoCompleto || 'não informado'}, endereço eletrônico: ${d.email || 'não informado'}, `,
+        { text: 'DECLARA', bold: true },
+        ` para os devidos fins, ser pobre na acepção jurídica do termo, não possuindo meios econômicos para arcar com quaisquer custas processuais ou honorários relativos a presente contenda, sem que venha comprometer o sustento próprio e da sua família, necessitando, desta forma, dos benefícios da `,
+        { text: 'JUSTIÇA GRATUITA', bold: true },
+        `, nos termos do artigo 5º, inciso LXXIV e XXXV da Constituição Federal da República; outrossim, informa a declarante que se encontra na condição de isenção perante a Receita Federal do Brasil e, portanto, comprova seu estado de miserabilidade na forma do artigo 99, §3º da Lei Federal nº. 13.105/2015, com suas posteriores alterações.`
+      ], 
+      style: 'main', 
+      alignment: 'justify' 
+    },
+    { text: '\n\n' }, // Duas linhas abaixo
+    { 
+      text: `Ressaltando que no próprio sítio eletrônico da Secretaria da Receita Federal do Brasil informa que a Declaração de Isento deixou de existir, a partir do ano de 2008, sendo suficiente para comprovar tal condição a declaração escrita e assinada pelo próprio interessado, in verbis: "Informamos que a Declaração Anual de Isento (DAI) da Secretaria da Receita Federal do Brasil foi instituída com o objetivo de manter atualizado o Cadastro de Pessoas Físicas (CPF). Com a edição da Instrução Normativa RFB nº 864/2008, de 25 de julho de 2008, deixou de existir a Declaração Anual de Isento, a partir do ano de 2008. A isenção poderá ser comprovada mediante declaração escrita e assinada pelo próprio interessado, conforme previsto na Lei Federal nº. 13.105/2015".`,
+      style: 'main', 
+      alignment: 'justify' 
+    },
+    { text: '\n\n' },
+    { text: `Ubatuba, ${d.dataExtenso}.`, style: 'main', alignment: 'right' },
     { text: '\n\n\n' },
-    { columns: [{ width: '*', text: '' }, { width: 'auto', stack: [{ text: '_________________________________________', alignment: 'center' }, { text: d.contratante.toUpperCase(), alignment: 'center', bold: true }] }, { width: '*', text: '' }], margin: [0, 18, 0, 0] }
+    { text: '_________________________________________', alignment: 'center' },
+    { text: d.contratante.toUpperCase(), alignment: 'center', bold: true }
   ];
+
   return {
     pageSize: 'A4',
     pageMargins: [40, 80, 40, 80],
     header: montarHeader,
     footer: montarFooter,
     content,
-    styles: { title: { fontSize: 16, bold: true, alignment: 'center' }, main: { fontSize: 12, lineHeight: 1.4 } }
+    styles: { 
+      title: { fontSize: 14, bold: true, alignment: 'center' }, 
+      main: { fontSize: 11, lineHeight: 1.4 }
+    }
   };
 }
 
 function docDefContrato(d) {
   const parcelasTxt = gerarTextoParcelas(d.valorParcela, d.qtdParcelas, d.primeiroVencimento);
   const valorExt = (d.valorPropositura && valorParaExtenso(d.valorPropositura)) || d.valorPropositura || '';
+  
   const content = [
     { text: 'CONTRATO DE HONORÁRIOS ADVOCATÍCIOS', style: 'title' },
     { text: '\n' },
+    
     { text: 'DAS PARTES', bold: true },
     { text: '\n' },
-    { text: `CONTRATANTE: ${d.contratante.toUpperCase()}, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || '--'} e inscrito no CPF sob o nº ${d.cpfCnpj || '--'}, residente e domiciliado na ${d.enderecoCompleto || '--'}.`, style: 'main', alignment: 'justify' },
+    { text: { text: 'Contrato de Prestação de Serviço que fazem de um lado;', bold: true }, style: 'main', alignment: 'justify' },
+    { text: { text: 'CONTRATANTE', bold: true }, style: 'main' },
+{ 
+  text: [
+    { text: d.contratante.toUpperCase(), bold: true },
+    `, ${d.nacionalidade}, ${d.estadoCivil}, ${d.profissao}, portador do RG nº ${d.rg || '--'} e inscrito no CPF sob o nº ${d.cpfCnpj || '--'}, residente e domiciliado na ${d.enderecoCompleto || '--'}, endereço eletrônico: ${d.email || '--'}, cidade de Ubatuba– SP.`
+  ], 
+  style: 'main', 
+  alignment: 'justify' 
+},
     { text: '\n' },
-    { text: `CONTRATADA: DRA. DÉBORA FERNANDA CASTILHO, OAB/SP 501.311, com escritório na Av. Dona Maria Alves, nº 438, Sala 2, 1° andar, Centro, Ubatuba - SP.`, style: 'main', alignment: 'justify' },
+    { text: `O Contratante está ciente que foi devidamente instruído por sua advogada sobre seus direitos e sendo feito, optou em fazê-lo com a contratada, que por sua vez poderá substabelecer com ou sem reservas o presente para especialistas advogados, contabilistas e/ou contratados para o melhor suporte junto ao Contratante.`, style: 'main', alignment: 'justify' },
     { text: '\n' },
-    { text: 'OBJETO DO CONTRATO — CLÁUSULA 1', bold: true },
-    { text: `O presente contrato tem por objetivo a prestação de serviços advocatícios para a defesa dos interesses do CONTRATANTE, relativos à Ação de ${d.motivoAcao || 'não especificado'}.`, style: 'main', alignment: 'justify' },
+    { text: { text: 'CONTRATADA', bold: true }, style: 'main' },
+{ 
+  text: [
+    { text: 'DRA. DÉBORA FERNANDA CASTILHO', bold: true },
+    ` brasileira, união estável, inscrita na Ordem dos Advogados do Brasil - Seccional de São Paulo sob o nº 501.311, com endereço eletrônico: debo_raubatuba@hotmail.com, com escritório profissional situado à Avenida Dona Maria Alves, nº 438, Sala 2,1° andar, Bairro Centro, CEP 11690-402, Cidade de Ubatuba, Estado de São Paulo, onde recebe informações e notificações.`
+  ], 
+  style: 'main', 
+  alignment: 'justify' 
+},
     { text: '\n' },
-    { text: 'DA FORMA DE COBRANÇA DOS HONORÁRIOS — CLÁUSULA 7', bold: true },
-    { text: `O CONTRATANTE pagará à CONTRATADA, a título de pro labore final, ${d.proLabore || '30%'}, e para a propositura da ação o valor de ${d.valorPropositura || ''} ${valorExt ? '(' + valorExt + ')' : ''}${parcelasTxt ? ' sendo pagos conforme segue: ' + parcelasTxt : ''}`, style: 'main', alignment: 'justify' },
-    { text: '\n\n' },
+    
+    { text: 'OBJETO DO CONTRATO', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 1', bold: true },
+    { text: '\n' },
+    { 
+      text: [
+        'O presente contrato tem por objetivo a prestação de serviços advocatícios para a defesa dos interesses do CONTRATANTE, por parte da Advogada contratada, para o fim de proceder na Ação de ',
+        { text: d.motivoAcao || 'não especificado', bold: true },
+        ', nesta Comarca de Ubatuba/SP, pelas cláusulas e condições a seguir expostas:'
+      ], 
+      style: 'main', 
+      alignment: 'left' 
+    },
+    { text: '\n' },
+    
+    { text: 'DAS OBRIGAÇÕES DA CONTRATADA', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 2', bold: true },
+    { text: '\n' },
+    { text: `A contratada obriga-se a prestar a contratante, nos termos da procuração outorgada, toda informação necessária, bem como acompanhar o processo judicial até o trâmite final, sempre aplicando todo seu conhecimento jurídico e empenho a fim de obter o melhor resultado.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    { text: 'PARÁGRAFO ÚNICO: Interposição de recursos e demais procedimentos inerentes à atividade advocatícia, serão de faculdade exclusiva da advogada.', style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'CLÁUSULA 3', bold: true },
+    { text: '\n' },
+    { text: `As atividades inclusas na prestação de serviço, objeto deste instrumento, são todas aquelas inerentes à profissão, quais sejam:`, style: 'main', alignment: 'left' },
+    { text: 'a. Praticar quais atos e medidas necessárias inerentes à causa, em todas as repartições públicas Federal, Estadual e Municipal, bem como à órgãos a estes ligados, seja por delegação, concessão ou outros meios, bem como a de estabelecimentos particulares;', style: 'main', alignment: 'justify' },
+    { text: 'b. Praticar todos os atos inerentes da Advocacia e aqueles constantes no Estatuto da Ordem dos Advogados do Brasil, bem como os especificados no instrumento procuratório.', style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'DAS OBRIGAÇÕES DO CONTRATANTE', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 4', bold: true },
+    { text: '\n' },
+    { text: `O contratante obriga-se a manter atualizado junto à contratada seus dados e meios de contato tais como e-mail, telefone fixo ou celular, endereço residencial.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    { text: 'PARÁGRAFO PRIMEIRO: O contratante obriga-se ao pagamento dos serviços pactuados na forma proposta nas cláusulas 5 e seguintes, estando ciente que a inadimplência poderá acarretar em medidas de execução.', style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'DAS DESPESAS', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 5', bold: true },
+    { text: '\n' },
+    { text: `Todas as despesas efetuadas pela CONTRATADA, mesmo que indiretamente relacionadas com a sua atuação, incluindo-se cópias, digitalizações, envio de correspondência, emolumentos, viagens, estacionamento, custas, preparo e demais gastos de natureza diversa da verba honorária, ficarão a expensas do CONTRATANTE, desde que previamente por autorizadas.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'CLÁUSULA 6', bold: true },
+    { text: '\n' },
+    { text: `Todas as despesas serão acompanhadas de documento comprobatório, devidamente organizado pela CONTRATADA.`, style: 'main', alignment: 'justify' },
+    { text: '\n' },
+    
+    { text: 'DA FORMA DE COBRANÇA DOS HONORÁRIOS ADVOCATÍCIOS', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 7', bold: true },
+    { text: '\n' },
+    { 
+      text: [
+        'O CONTRATANTE, como contraprestação aos serviços jurídicos prestados, pagará à CONTRATADA, a título de pro labore final, ',
+        { text: d.proLabore || '30%', bold: true },
+        ' do valor da causa, sendo essa procedente, e para a propositura da ação o valor de ',
+        { text: d.valorPropositura || '', bold: true },
+        valorExt ? ' (' + valorExt + ')' : '',
+        parcelasTxt ? ', feito os pagamentos à CONTRATADA pela chave pix mariajuliacastilho6@gmail.com, os quais serão pagos da seguinte forma; ' + parcelasTxt : ''
+      ], 
+      style: 'main', 
+      alignment: 'left' 
+    },
+    { text: '\n' },
+    { text: 'PARÁGRAFO ÚNICO: Estabelece o presente contrato, que no caso de não pagamento dos honorários devidos aos recursos, a CONTRATADA fica desobrigada de promovê-lo, ficando isento de toda e qualquer responsabilidade profissional ou pessoal.', style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'CLÁUSULA 8', bold: true },
+    { text: '\n' },
+    { text: `Os honorários de sucumbência pertencem a CONTRATADA e não se confundem com os honorários contratuais aqui tratados.`, style: 'main', alignment: 'justify' },
+    { text: '\n' },
+    { text: 'PARÁGRAFO ÚNICO: Caso haja morte ou incapacidade civil da CONTRATADA, seus sucessores ou representante legal receberão os honorários na proporção do trabalho realizado.', style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'CLÁUSULA 9', bold: true },
+    { text: '\n' },
+    { text: `As partes estabelecem que havendo atraso no pagamento dos honorários ensejará multa no valor de 2% (dois por cento) do valor devido e serão cobrados juros de mora na proporção de 3% (três por cento) ao mês, devidamente atualizados. Caso a mora seja superior a 30 (trinta) dias, salvo ajuste contrário, este contrato será rescindido de pleno direito, independentemente de qualquer medida judicial ou extrajudicial, considerando-se vencidas as demais obrigações vincendas, que serão exigidas de imediato.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'DA VIGÊNCIA E DA RESCISÃO', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 10', bold: true },
+    { text: '\n' },
+    { text: `Este contrato tem vigência até o adimplemento das obrigações ajustadas e pode ser rescindido a qualquer tempo por qualquer das partes, mediante aviso prévio de 30 (trinta) dias, por escrito e com comprovante de entrega. Na hipótese de rescisão antecipada pelo CONTRATANTE, esta deverá pagar todos os valores pro labore pactuados neste contrato, bem como, para os valores pro êxito, um percentual correspondente à parcela do serviço que foi executada pela CONTRATADA. Este percentual nunca será inferior a cinquenta por cento do total. Em nenhum caso os valores já recebidos pelo CONTRATADO serão devidos o CONTRATANTE.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'DA RESPONSABILIDADE', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 11', bold: true },
+    { text: '\n' },
+    { text: `A CONTRATADA não será responsabilizada por quaisquer danos que sobrevierem das demandas que patrocinar, cabendo-lhe tão somente o emprego diligente de seus conhecimentos, meios e técnicas para a defesa dos interesses do CONTRATANTE, inexistente qualquer garantia de resultado.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'CLÁUSULA 12', bold: true },
+    { text: '\n' },
+    { text: `A CONTRATADA não será responsabilizado acaso resultem danos por não tomar conhecimento de informações e documentos substanciais para a sua atividade ou em decorrência da impossibilidade de contato com o CONTRATANTE, que deverá manter atualizadas quaisquer informações relevantes para a demanda, bem como as informações cadastrais fornecidas por aquele.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'CLÁUSULA 13', bold: true },
+    { text: '\n' },
+    { text: `É obrigação do CONTRATANTE, sempre que solicitado, entregar, fornecer ou disponibilizar à CONTRATADA todos os documentos necessários, provas, informações e subsídios, em tempo hábil, para que este possa cumprir o objeto do presente contrato. Qualquer omissão ou negligência por parte do CONTRATANTE será de sua inteira responsabilidade, caso advenha algum prejuízo a seus interesses.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'DO FORO', bold: true },
+    { text: '\n' },
+    { text: 'CLÁUSULA 14', bold: true },
+    { text: '\n' },
+    { text: `Para dirimir quaisquer controvérsias oriundas deste contrato, as partes elegem o foro da comarca desta cidade.`, style: 'main', alignment: 'left' },
+    { text: '\n' },
+    
+    { text: 'Por estarem assim justos e contratados, firmam o presente instrumento, em duas vias de igual teor.', style: 'main', alignment: 'left' },
+    { text: '\n\n\n' },
+    
     { text: `Ubatuba, ${d.dataExtenso}.`, alignment: 'right' },
     { text: '\n\n\n' },
-    { columns: [{ width: '*', text: '' }, { width: 'auto', stack: [{ text: '_________________________________________', alignment: 'center' }, { text: d.contratante.toUpperCase(), alignment: 'center', bold: true }] }, { width: 'auto', stack: [{ text: '_________________________________________', alignment: 'center' }, { text: 'DÉBORA FERNANDA CASTILHO', alignment: 'center', bold: true }, { text: 'OAB/SP 501.311', alignment: 'center' }] }, { width: '*', text: '' }], margin: [0, 18, 0, 0] }
+    
+    { 
+      columns: [
+        { 
+          width: '50%', 
+          stack: [
+            { text: '_________________________________________', alignment: 'center' },
+            { text: d.contratante.toUpperCase(), alignment: 'center', bold: true }
+          ]
+        },
+        { 
+          width: '50%', 
+          stack: [
+            { text: '_________________________________________', alignment: 'center' },
+            { text: 'DÉBORA FERNANDA CASTILHO', alignment: 'center', bold: true },
+            { text: 'OAB/SP 501.311', alignment: 'center' }
+          ]
+        }
+      ]
+    }
   ];
+
   return {
     pageSize: 'A4',
     pageMargins: [40, 80, 40, 80],
     header: montarHeader,
     footer: montarFooter,
     content,
-    styles: { title: { fontSize: 16, bold: true, alignment: 'center' }, main: { fontSize: 12, lineHeight: 1.4 } }
+    styles: { 
+      title: { fontSize: 14, bold: true, alignment: 'center' }, 
+      main: { fontSize: 11, lineHeight: 1.3 }
+    }
   };
 }
 
 /* gera o PDF */
 function gerarPDF(tipo) {
+  if (!validarCamposObrigatorios(tipo)) {
+    return;
+  }
+  
   const d = coletarDadosGlobais();
   let doc = null;
   if (tipo === 'procuracao') doc = docDefProcuracao(d);
